@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prédiction du Churn — Amine Nakrou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Literata:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --cream:   #F6F1EA;
+  --cream2:  #EDE6DC;
+  --white:   #FDFAF6;
+  --ink:     #1E1A15;
+  --ink2:    #3D3830;
+  --muted:   #8C8070;
+  --light:   #B8AFA3;
+  --rule:    #D8CFC4;
+  --terra:   #C04E2E;
+  --terra2:  #E8846A;
+  --sage:    #4E7868;
+  --sage2:   #7BA898;
+  --warm:    #D4A847;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--white);
+  color: var(--ink);
+  font-family: 'Literata', Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  padding: 24px 72px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+  position: sticky; top: 0; background: rgba(253,250,246,0.93);
+  backdrop-filter: blur(8px); z-index: 100;
+}
+.nav-brand { display: flex; flex-direction: column; gap: 2px; }
+.nav-name { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+.nav-sub { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--muted); }
+.nav-links { display: flex; gap: 36px; list-style: none; align-items: center; }
+.nav-links a { font-family: 'Literata', serif; font-style: italic; font-size: 0.88rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--terra); }
+.nav-cta { background: var(--ink) !important; color: var(--white) !important; padding: 9px 22px; border-radius: 40px; font-style: normal !important; font-size: 0.8rem !important; transition: background 0.2s !important; }
+.nav-cta:hover { background: var(--terra) !important; }
+
+/* HERO */
+.hero {
+  padding: 96px 72px 80px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: end;
+  border-bottom: 1px solid var(--rule);
+}
+.hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+.eyebrow-tag { font-family: 'Fira Code', monospace; font-size: 0.66rem; background: var(--cream2); color: var(--muted); padding: 5px 11px; border-radius: 4px; letter-spacing: 0.05em; }
+.eyebrow-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--terra); flex-shrink:0; }
+.hero-title { font-family: 'Fraunces', serif; font-weight: 300; font-size: clamp(2.6rem, 4.5vw, 4.2rem); line-height: 1.08; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 24px; }
+.hero-title strong { font-weight: 600; color: var(--terra); }
+.hero-title em { font-style: italic; }
+.hero-desc { font-size: 1rem; line-height: 1.8; color: var(--ink2); margin-bottom: 40px; max-width: 460px; }
+.hero-actions { display: flex; gap: 16px; align-items: center; }
+.btn-solid { background: var(--terra); color: #fff; padding: 13px 28px; border-radius: 40px; font-family: 'Literata', serif; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s, transform 0.15s; }
+.btn-solid:hover { background: var(--ink); transform: translateY(-1px); }
+.btn-link { color: var(--muted); font-family: 'Literata', serif; font-style: italic; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s; }
+.btn-link:hover { color: var(--ink); }
+.btn-link::after { content: '→'; }
+
+/* HERO STATS */
+.hero-stats { display: flex; flex-direction: column; gap: 18px; padding-bottom: 6px; }
+.big-stat { background: var(--cream); border-radius: 16px; padding: 32px 36px; }
+.big-stat-label { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.big-stat-num { font-family: 'Fraunces', serif; font-size: 3.4rem; font-weight: 600; line-height: 1; letter-spacing: -0.03em; color: var(--terra); margin-bottom: 6px; }
+.big-stat-note { font-size: 0.8rem; color: var(--muted); font-style: italic; }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mini-stat { background: var(--cream); border-radius: 12px; padding: 22px 22px; }
+.mini-stat-num { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 4px; }
+.mini-stat-label { font-family: 'Fira Code', monospace; font-size: 0.58rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* SECTIONS */
+.section { padding: 96px 72px; }
+.section + .section { border-top: 1px solid var(--rule); }
+.section-alt { background: var(--cream); }
+.section-label { font-family: 'Fira Code', monospace; font-size: 0.64rem; color: var(--terra); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.section-label::before { content: ''; display: block; width: 22px; height: 1px; background: var(--terra); }
+.section-heading { font-family: 'Fraunces', serif; font-weight: 300; font-size: clamp(1.9rem, 3vw, 2.8rem); line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 52px; }
+.section-heading em { font-style: italic; color: var(--terra); }
+
+/* RESULTS GRID */
+.results-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; background: var(--rule); border: 2px solid var(--rule); border-radius: 16px; overflow: hidden; margin-bottom: 56px; }
+.result-cell { background: var(--white); padding: 32px 26px; transition: background 0.2s; }
+.result-cell:hover { background: var(--cream); }
+.rc-icon { font-size: 1.3rem; margin-bottom: 14px; }
+.rc-label { font-family: 'Fira Code', monospace; font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.rc-value { font-family: 'Fraunces', serif; font-size: 2.5rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1; margin-bottom: 5px; }
+.rc-terra { color: var(--terra); }
+.rc-sage { color: var(--sage); }
+.rc-warm { color: var(--warm); }
+.rc-ink2 { color: var(--ink2); }
+.rc-note { font-size: 0.76rem; color: var(--muted); font-style: italic; }
+
+/* CHARTS */
+.charts-2col { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; }
+.chart-box { background: var(--cream); border-radius: 16px; padding: 32px; }
+.chart-box-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 0.98rem; margin-bottom: 4px; }
+.chart-box-sub { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-bottom: 26px; }
+.hbars { display: flex; flex-direction: column; gap: 16px; }
+.hbar-row {}
+.hbar-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.hbar-name { font-size: 0.85rem; color: var(--ink2); }
+.hbar-val { font-family: 'Fraunces', serif; font-size: 0.88rem; font-weight: 600; }
+.hbar-track { height: 5px; background: var(--cream2); border-radius: 4px; overflow: hidden; }
+.hbar-fill { height: 100%; border-radius: 4px; transform: scaleX(0); transform-origin: left; transition: transform 1.2s cubic-bezier(0.16,1,0.3,1); }
+.hbar-fill.terra { background: var(--terra); }
+.hbar-fill.sage { background: var(--sage); }
+.hbar-fill.sage2 { background: var(--sage2); }
+.hbar-fill.terra2 { background: var(--terra2); }
+.hbar-fill.warm { background: var(--warm); }
+
+/* CONFUSION */
+.conf-axis { font-family: 'Fira Code', monospace; font-size: 0.56rem; color: var(--muted); text-align: center; letter-spacing: 0.05em; }
+.conf-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.conf-cell { border-radius: 10px; padding: 18px 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; aspect-ratio: 1.1; }
+.conf-num { font-family: 'Fraunces', serif; font-size: 1.9rem; font-weight: 600; letter-spacing: -0.02em; }
+.conf-lbl { font-family: 'Fira Code', monospace; font-size: 0.5rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; color: var(--muted); }
+.c-good { background: rgba(78,120,104,0.12); }
+.c-good .conf-num { color: var(--sage); }
+.c-bad { background: rgba(192,78,46,0.08); }
+.c-bad .conf-num { color: var(--terra2); }
+.conf-note { font-family: 'Fira Code', monospace; font-size: 0.56rem; color: var(--muted); text-align: center; margin-top: 4px; }
+
+/* MODELS */
+.model-comp { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+.model-row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1.5fr; border-bottom: 1px solid var(--rule); transition: background 0.15s; }
+.model-row:last-child { border-bottom: none; }
+.model-row:hover:not(.header) { background: var(--white); }
+.model-row.header { background: var(--cream2); }
+.model-row.winner { background: rgba(192,78,46,0.04); }
+.mc { padding: 16px 22px; display: flex; align-items: center; }
+.mc.lbl { font-family: 'Fira Code', monospace; font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; }
+.mc-name { font-family: 'Fraunces', serif; font-size: 0.96rem; color: var(--ink); }
+.mc-badge { display: inline-block; margin-left: 9px; background: var(--terra); color: #fff; padding: 2px 8px; border-radius: 20px; font-family: 'Fira Code', monospace; font-size: 0.52rem; }
+.mc-bar-wrap { flex: 1; display: flex; align-items: center; gap: 10px; }
+.mc-track { flex: 1; height: 4px; background: var(--cream2); border-radius: 3px; overflow: hidden; }
+.mc-fill { height: 100%; border-radius: 3px; transform: scaleX(0); transform-origin: left; transition: transform 1s cubic-bezier(0.16,1,0.3,1); }
+.mc-fill.a { background: var(--terra); }
+.mc-fill.b { background: var(--sage2); }
+.mc-fill.c { background: var(--light); }
+.mc-num { font-family: 'Fraunces', serif; font-size: 0.85rem; font-weight: 600; color: var(--ink2); min-width: 36px; text-align: right; }
+
+/* FEATURES */
+.features-list { }
+.feature-row { display: grid; grid-template-columns: 100px 1fr 220px; gap: 0; border-bottom: 1px solid var(--rule); padding: 44px 0; align-items: start; transition: all 0.2s; }
+.feature-row:first-child { border-top: 1px solid var(--rule); }
+.feature-num { font-family: 'Fira Code', monospace; font-size: 0.7rem; color: var(--terra); padding-top: 5px; }
+.feature-name { font-family: 'Fraunces', serif; font-size: 1.45rem; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 10px; }
+.feature-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.75; max-width: 400px; }
+.feature-stack { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; padding-top: 4px; }
+.stack-tag { font-family: 'Fira Code', monospace; font-size: 0.58rem; background: var(--cream2); color: var(--muted); padding: 4px 9px; border-radius: 5px; transition: all 0.15s; }
+.stack-tag:hover { background: var(--terra); color: #fff; }
+
+/* ABOUT */
+.about-grid { display: grid; grid-template-columns: 300px 1fr; gap: 80px; }
+.portrait-box { width: 100%; aspect-ratio: 3/4; background: var(--cream2); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 6rem; position: relative; overflow: hidden; }
+.portrait-box::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(192,78,46,0.07), transparent 60%); }
+.portrait-caption { margin-top: 16px; font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.06em; line-height: 1.7; }
+.about-role { font-family: 'Fira Code', monospace; font-size: 0.68rem; color: var(--terra); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 24px; margin-top: 4px; }
+.about-name { font-family: 'Fraunces', serif; font-weight: 300; font-size: 2.6rem; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 4px; line-height: 1; }
+.about-bio { font-size: 0.97rem; line-height: 1.85; color: var(--ink2); margin-bottom: 32px; border-left: 3px solid var(--terra2); padding-left: 18px; }
+.about-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 36px; }
+.fact-box { background: var(--cream); border-radius: 10px; padding: 18px 18px; }
+.fact-label { font-family: 'Fira Code', monospace; font-size: 0.56rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 4px; }
+.fact-val { font-size: 0.85rem; color: var(--ink2); line-height: 1.4; }
+.contact-list { display: flex; flex-direction: column; gap: 11px; }
+.contact-item { display: flex; align-items: center; gap: 12px; font-size: 0.87rem; color: var(--ink2); }
+.contact-ico { width: 32px; height: 32px; border-radius: 7px; background: var(--cream2); display: flex; align-items: center; justify-content: center; font-size: 0.88rem; flex-shrink: 0; }
+.contact-item a { color: var(--ink2); text-decoration: none; transition: color 0.2s; }
+.contact-item a:hover { color: var(--terra); }
+
+/* TECH */
+.tech-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.tech-card { background: var(--cream); border-radius: 14px; padding: 26px 22px; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; }
+.tech-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(30,26,21,0.07); }
+.tech-emoji { font-size: 1.5rem; }
+.tech-name { font-family: 'Fraunces', serif; font-size: 0.97rem; font-weight: 600; color: var(--ink); }
+.tech-desc { font-size: 0.76rem; color: var(--muted); line-height: 1.5; }
+
+/* FOOTER */
+footer { background: var(--ink); color: var(--white); padding: 52px 72px 36px; }
+.footer-top { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 60px; margin-bottom: 44px; padding-bottom: 44px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.footer-brand-name { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 300; margin-bottom: 10px; }
+.footer-brand-desc { font-size: 0.8rem; color: rgba(255,255,255,0.38); line-height: 1.65; }
+.footer-col-title { font-family: 'Fira Code', monospace; font-size: 0.58rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.footer-links a { font-size: 0.84rem; color: rgba(255,255,255,0.5); text-decoration: none; font-style: italic; transition: color 0.2s; }
+.footer-links a:hover { color: var(--terra2); }
+.footer-bottom { display: flex; justify-content: space-between; font-family: 'Fira Code', monospace; font-size: 0.6rem; color: rgba(255,255,255,0.22); }
+
+/* ANIMATIONS */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal.in { opacity: 1; transform: translateY(0); }
+.d1 { transition-delay: 0.1s; }
+.d2 { transition-delay: 0.2s; }
+.d3 { transition-delay: 0.3s; }
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  nav { padding: 18px 24px; }
+  .nav-links { display: none; }
+  .hero { grid-template-columns: 1fr; padding: 72px 24px 56px; gap: 44px; }
+  .section { padding: 72px 24px; }
+  .results-grid { grid-template-columns: 1fr 1fr; }
+  .charts-2col { grid-template-columns: 1fr; }
+  .about-grid { grid-template-columns: 1fr; }
+  .tech-grid { grid-template-columns: 1fr 1fr; }
+  .feature-row { grid-template-columns: 60px 1fr; }
+  .feature-stack { display: none; }
+  footer { padding: 44px 24px 28px; }
+  .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  .footer-bottom { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-name">Amine Nakrou</div>
+    <div class="nav-sub">Prédiction du Churn · ML Project</div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#resultats">Résultats</a></li>
+    <li><a href="#modeles">Modèles</a></li>
+    <li><a href="#projet">Le projet</a></li>
+    <li><a href="#auteur">À propos</a></li>
+    <li><a href="https://aminenakrou-churn-prediction.streamlit.app" target="_blank" class="nav-cta">Dashboard ↗</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-tag">Machine Learning · 2025</span>
+      <div class="eyebrow-dot"></div>
+      <span class="eyebrow-tag">Polytech Lille — ISIA</span>
+    </div>
+    <h1 class="hero-title">
+      Comprendre <strong>pourquoi</strong><br>
+      les clients <em>partent</em>,<br>
+      avant qu'ils partent.
+    </h1>
+    <p class="hero-desc">
+      Un projet de data science qui combine analyse exploratoire, modèles 
+      de machine learning et interface Streamlit pour prédire et prévenir 
+      le désabonnement client dans les télécommunications.
+    </p>
+    <div class="hero-actions">
+      <a href="https://aminenakrou-churn-prediction.streamlit.app" target="_blank" class="btn-solid">
+        Tester l'application ↗
+      </a>
+      <a href="https://github.com/aminenakrou/Projet-de-prediction-du-churn-client" target="_blank" class="btn-link">
+        Code source
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-stats reveal">
+    <div class="big-stat">
+      <div class="big-stat-label">Accuracy — Modèle final</div>
+      <div class="big-stat-num">82.4%</div>
+      <div class="big-stat-note">Régression Logistique · 4 452 clients analysés</div>
+    </div>
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <div class="mini-stat-num">0.88</div>
+        <div class="mini-stat-label">AUC-ROC</div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-num">79%</div>
+        <div class="mini-stat-label">Recall Churn</div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-num">0.81</div>
+        <div class="mini-stat-label">F1-Score</div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-num">26.5%</div>
+        <div class="mini-stat-label">Taux churn</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RÉSULTATS -->
+<section class="section" id="resultats">
+  <div class="section-label">Résultats</div>
+  <h2 class="section-heading">Performance du<br><em>modèle retenu</em></h2>
+
+  <div class="results-grid reveal">
+    <div class="result-cell">
+      <div class="rc-icon">🎯</div>
+      <div class="rc-label">Accuracy</div>
+      <div class="rc-value rc-terra">82.4%</div>
+      <div class="rc-note">sur 891 exemples test</div>
+    </div>
+    <div class="result-cell">
+      <div class="rc-icon">📊</div>
+      <div class="rc-label">AUC-ROC</div>
+      <div class="rc-value rc-sage">0.88</div>
+      <div class="rc-note">courbe très discriminante</div>
+    </div>
+    <div class="result-cell">
+      <div class="rc-icon">🔍</div>
+      <div class="rc-label">Recall (Churn)</div>
+      <div class="rc-value rc-warm">79.1%</div>
+      <div class="rc-note">clients à risque détectés</div>
+    </div>
+    <div class="result-cell">
+      <div class="rc-icon">⚖️</div>
+      <div class="rc-label">F1-Score</div>
+      <div class="rc-value rc-ink2">0.81</div>
+      <div class="rc-note">précision / rappel équilibrés</div>
+    </div>
+  </div>
+
+  <div class="charts-2col reveal">
+    <div class="chart-box">
+      <div class="chart-box-title">Accuracy par modèle</div>
+      <div class="chart-box-sub">Comparaison sur le dataset de test — validation croisée 5-fold</div>
+      <div class="hbars" id="hbarsEl">
+        <div class="hbar-row">
+          <div class="hbar-meta">
+            <span class="hbar-name">Régression Logistique <span style="color:var(--terra);font-size:0.7rem">★ retenu</span></span>
+            <span class="hbar-val" style="color:var(--terra)">82.4%</span>
+          </div>
+          <div class="hbar-track"><div class="hbar-fill terra" style="width:82.4%"></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-meta"><span class="hbar-name">Random Forest</span><span class="hbar-val">79.2%</span></div>
+          <div class="hbar-track"><div class="hbar-fill sage" style="width:79.2%"></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-meta"><span class="hbar-name">Gradient Boosting</span><span class="hbar-val">77.8%</span></div>
+          <div class="hbar-track"><div class="hbar-fill sage2" style="width:77.8%"></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-meta"><span class="hbar-name">Support Vector Machine</span><span class="hbar-val">74.5%</span></div>
+          <div class="hbar-track"><div class="hbar-fill terra2" style="width:74.5%"></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-meta"><span class="hbar-name">Arbre de Décision</span><span class="hbar-val">72.1%</span></div>
+          <div class="hbar-track"><div class="hbar-fill warm" style="width:72.1%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-box">
+      <div class="chart-box-title">Matrice de Confusion</div>
+      <div class="chart-box-sub">Régression Logistique · seuil = 0.45</div>
+      <div class="conf-axis">Prédit : Non churn &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Prédit : Churn</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+        <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Fira Code',monospace;font-size:0.55rem;color:var(--muted);letter-spacing:0.05em;flex-shrink:0">Réel : Non &nbsp; Réel : Oui</div>
+        <div class="conf-2x2" style="flex:1">
+          <div class="conf-cell c-good"><div class="conf-num">521</div><div class="conf-lbl">Vrais Négatifs</div></div>
+          <div class="conf-cell c-bad"><div class="conf-num">63</div><div class="conf-lbl">Faux Positifs</div></div>
+          <div class="conf-cell c-bad"><div class="conf-num">94</div><div class="conf-lbl">Faux Négatifs</div></div>
+          <div class="conf-cell c-good"><div class="conf-num">213</div><div class="conf-lbl">Vrais Positifs</div></div>
+        </div>
+      </div>
+      <div class="conf-note">891 échantillons au total</div>
+    </div>
+  </div>
+</section>
+
+<!-- MODÈLES -->
+<section class="section section-alt" id="modeles">
+  <div class="section-label">Comparaison</div>
+  <h2 class="section-heading">Pourquoi la<br><em>Régression Logistique</em>&thinsp;?</h2>
+
+  <div class="model-comp reveal">
+    <div class="model-row header">
+      <div class="mc lbl">Modèle</div>
+      <div class="mc lbl">Accuracy</div>
+      <div class="mc lbl">AUC-ROC</div>
+      <div class="mc lbl">F1-Score</div>
+      <div class="mc lbl">Recall</div>
+    </div>
+    <div class="model-row winner">
+      <div class="mc"><span class="mc-name">Régression Logistique</span><span class="mc-badge">retenu</span></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill a" style="width:82.4%"></div></div><span class="mc-num">82.4%</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill a" style="width:88%"></div></div><span class="mc-num">0.88</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill a" style="width:81%"></div></div><span class="mc-num">0.81</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill a" style="width:79.1%"></div></div><span class="mc-num">79.1%</span></div></div>
+    </div>
+    <div class="model-row">
+      <div class="mc"><span class="mc-name">Random Forest</span></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill b" style="width:79.2%"></div></div><span class="mc-num">79.2%</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill b" style="width:85%"></div></div><span class="mc-num">0.85</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill b" style="width:78%"></div></div><span class="mc-num">0.78</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill b" style="width:76%"></div></div><span class="mc-num">76.0%</span></div></div>
+    </div>
+    <div class="model-row">
+      <div class="mc"><span class="mc-name">Gradient Boosting</span></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:77.8%"></div></div><span class="mc-num">77.8%</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:83%"></div></div><span class="mc-num">0.83</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:76%"></div></div><span class="mc-num">0.76</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:74%"></div></div><span class="mc-num">74.0%</span></div></div>
+    </div>
+    <div class="model-row">
+      <div class="mc"><span class="mc-name">Support Vector Machine</span></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:74.5%"></div></div><span class="mc-num">74.5%</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:81%"></div></div><span class="mc-num">0.81</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:73%"></div></div><span class="mc-num">0.73</span></div></div>
+      <div class="mc"><div class="mc-bar-wrap"><div class="mc-track"><div class="mc-fill c" style="width:71.3%"></div></div><span class="mc-num">71.3%</span></div></div>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;font-size:0.88rem;color:var(--muted);font-style:italic;max-width:540px;line-height:1.75" class="reveal">
+    La régression logistique s'est imposée grâce à ses meilleures métriques et surtout 
+    son interprétabilité — chaque coefficient donne une signification métier directe, 
+    facilitant la communication avec les équipes non-techniques.
+  </p>
+</section>
+
+<!-- PROJET -->
+<section class="section" id="projet">
+  <div class="section-label">Le Projet</div>
+  <h2 class="section-heading">Quatre angles pour<br><em>comprendre le churn</em></h2>
+
+  <div class="features-list reveal">
+    <div class="feature-row">
+      <div class="feature-num">01</div>
+      <div class="feature-body">
+        <div class="feature-name">Dashboard Exploratoire</div>
+        <div class="feature-desc">Visualisations interactives des données brutes — distributions, corrélations, profils clients segmentés. Une analyse en profondeur des 21 variables du dataset Telco Customer Churn.</div>
+      </div>
+      <div class="feature-stack">
+        <span class="stack-tag">Plotly</span><span class="stack-tag">Pandas</span><span class="stack-tag">Streamlit</span>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-num">02</div>
+      <div class="feature-body">
+        <div class="feature-name">Prédiction Individuelle</div>
+        <div class="feature-desc">Formulaire interactif pour saisir le profil d'un client et obtenir sa probabilité de churn en temps réel, avec explication des principaux facteurs de risque.</div>
+      </div>
+      <div class="feature-stack">
+        <span class="stack-tag">Scikit-learn</span><span class="stack-tag">Pickle</span>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-num">03</div>
+      <div class="feature-body">
+        <div class="feature-name">Analyse en Lot</div>
+        <div class="feature-desc">Upload CSV ou génération de clients fictifs pour une analyse à grande échelle. Export des résultats avec scores de risque et recommandations d'actions par segment.</div>
+      </div>
+      <div class="feature-stack">
+        <span class="stack-tag">NumPy</span><span class="stack-tag">CSV Export</span>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-num">04</div>
+      <div class="feature-body">
+        <div class="feature-name">Déploiement & CI/CD</div>
+        <div class="feature-desc">Application containerisée avec Docker, pipeline CI/CD via GitHub Actions, déploiement continu sur Streamlit Cloud — une architecture prête pour la production.</div>
+      </div>
+      <div class="feature-stack">
+        <span class="stack-tag">Docker</span><span class="stack-tag">GitHub Actions</span><span class="stack-tag">Streamlit Cloud</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AUTEUR -->
+<section class="section section-alt" id="auteur">
+  <div class="section-label">L'auteur</div>
+  <h2 class="section-heading">Amine <em>Nakrou</em></h2>
+
+  <div class="about-grid">
+    <div class="reveal">
+      <div class="portrait-box">👨‍💻</div>
+      <div class="portrait-caption">
+        Amine Nakrou<br>
+        Polytech Lille — ISIA 4<sup>e</sup> année<br>
+        Lille, France · 2025
+      </div>
+    </div>
+    <div class="reveal d2">
+      <div class="about-name">Amine Nakrou</div>
+      <div class="about-role">Élève-ingénieur · Informatique, Statistiques & IA</div>
+      <p class="about-bio">
+        Étudiant en 4ème année à Polytech Lille, spécialité ISIA — une formation à
+        l'intersection de l'informatique, des mathématiques appliquées et de l'intelligence artificielle.
+        Ce projet de prédiction du churn illustre ma capacité à conduire un projet de data science
+        de bout en bout&nbsp;: de l'analyse exploratoire au déploiement d'une application en production.
+      </p>
+      <div class="about-facts">
+        <div class="fact-box">
+          <div class="fact-label">Formation</div>
+          <div class="fact-val">Polytech Lille — ISIA<br>Diplôme d'Ingénieur 2026</div>
+        </div>
+        <div class="fact-box">
+          <div class="fact-label">Prépa</div>
+          <div class="fact-val">MPSI · MP<br>Mathématiques & Physique</div>
+        </div>
+        <div class="fact-box">
+          <div class="fact-label">Spécialité</div>
+          <div class="fact-val">Machine Learning<br>Data Science · IA</div>
+        </div>
+        <div class="fact-box">
+          <div class="fact-label">Disponibilité</div>
+          <div class="fact-val">Stage / Alternance<br>à partir de 2025</div>
+        </div>
+      </div>
+      <div class="contact-list">
+        <div class="contact-item"><div class="contact-ico">✉️</div><span>aminenakrou635@gmail.com</span></div>
+        <div class="contact-item"><div class="contact-ico">📱</div><span>+33 7 44 28 00 10</span></div>
+        <div class="contact-item"><div class="contact-ico">💼</div><a href="https://www.linkedin.com/in/amine-nakrou/" target="_blank">linkedin.com/in/amine-nakrou</a></div>
+        <div class="contact-item"><div class="contact-ico">⌨️</div><a href="https://github.com/aminenakrou" target="_blank">github.com/aminenakrou</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH -->
+<section class="section">
+  <div class="section-label">Technologies</div>
+  <h2 class="section-heading">Stack <em>technique</em></h2>
+  <div class="tech-grid reveal">
+    <div class="tech-card"><div class="tech-emoji">🐍</div><div class="tech-name">Python 3.10</div><div class="tech-desc">Langage principal — data processing, modélisation, API.</div></div>
+    <div class="tech-card"><div class="tech-emoji">🤖</div><div class="tech-name">Scikit-learn</div><div class="tech-desc">Pipelines ML, preprocessing, entraînement et évaluation.</div></div>
+    <div class="tech-card"><div class="tech-emoji">📊</div><div class="tech-name">Streamlit</div><div class="tech-desc">Interface web interactive déployée en quelques lignes.</div></div>
+    <div class="tech-card"><div class="tech-emoji">📈</div><div class="tech-name">Plotly</div><div class="tech-desc">Visualisations dynamiques et graphiques interactifs.</div></div>
+    <div class="tech-card"><div class="tech-emoji">🐼</div><div class="tech-name">Pandas · NumPy</div><div class="tech-desc">Manipulation, nettoyage et transformation des données.</div></div>
+    <div class="tech-card"><div class="tech-emoji">🐳</div><div class="tech-name">Docker</div><div class="tech-desc">Containerisation pour un déploiement reproductible.</div></div>
+    <div class="tech-card"><div class="tech-emoji">🔁</div><div class="tech-name">GitHub Actions</div><div class="tech-desc">CI/CD automatisé — tests et build à chaque push.</div></div>
+    <div class="tech-card"><div class="tech-emoji">☁️</div><div class="tech-name">Streamlit Cloud</div><div class="tech-desc">Hébergement gratuit avec lien public partageable.</div></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-brand-name">Prédiction du Churn Client</div>
+      <p class="footer-brand-desc">Un projet académique de machine learning développé dans le cadre de la formation ingénieur ISIA à Polytech Lille.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Liens</div>
+      <ul class="footer-links">
+        <li><a href="https://aminenakrou-churn-prediction.streamlit.app" target="_blank">Application Streamlit ↗</a></li>
+        <li><a href="https://github.com/aminenakrou/Projet-de-prediction-du-churn-client" target="_blank">Dépôt GitHub ↗</a></li>
+        <li><a href="https://www.linkedin.com/in/amine-nakrou/" target="_blank">LinkedIn ↗</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Contact</div>
+      <ul class="footer-links">
+        <li><a href="mailto:aminenakrou635@gmail.com">aminenakrou635@gmail.com</a></li>
+        <li><a>+33 7 44 28 00 10</a></li>
+        <li><a>Lille, France</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Amine Nakrou — Polytech Lille</span>
+    <span>Fait avec Streamlit · Scikit-learn · Python</span>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Bar animations
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.hbar-fill, .mc-fill').forEach((fill, i) => {
+        setTimeout(() => fill.style.transform = 'scaleX(1)', i * 100 + 200);
+      });
+      barObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.chart-box, .model-comp').forEach(el => barObs.observe(el));
+</script>
+</body>
+</html>
